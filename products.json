@@ -1,5 +1,10 @@
 [
   {
+    "name": "POP MIE & SEDAP CUP ANEKA RASA 印尼風味杯麵 75g－85g",
+    "category": "Food & Beverage > Convenience / Ready-to-eat > Instant Noodles",
+    "image": "https://down-tw.img.susercontent.com/tw-11134201-7r98o-lx9exzofysdid3"
+  },
+  {
     "name": "RITZ CRACKERS CHEESE SANDWICH BISCUIT 1packs, 2packs, 3packs",
     "category": "Food & Beverage > Snacks > Biscuits, Cookies & Wafers",
     "image": "https://down-tw.img.susercontent.com/tw-11134201-7r98u-lx9ewjc6k6cmcb"
@@ -1410,11 +1415,6 @@
     "image": "https://down-tw.img.susercontent.com/tw-11134207-820lf-ml3ffomqeio511"
   },
   {
-    "name": "ROMA SARI GANDUM SANDWICH 108g",
-    "category": "Food & Beverage > Snacks > Biscuits, Cookies & Wafers",
-    "image": "https://down-tw.img.susercontent.com/tw-11134207-7r98v-lx3q0k0rnkmefd"
-  },
-  {
     "name": "ROMA SARI GANDUM BISCUIT SUSU 小麥餅乾 149g",
     "category": "Food & Beverage > Snacks > Biscuits, Cookies & Wafers",
     "image": "https://down-tw.img.susercontent.com/tw-11134201-7r990-lx9exlp4fc4m0c"
@@ -2551,7 +2551,7 @@
   },
   {
     "name": "NABATI SIIP SNACK 80g ( 20pcs ) ANEKA RASA",
-    "category": "Cannot be edited during system maintenance.",
+    "category": "Food & Beverage > Snacks > Biscuits, Cookies & Wafers",
     "image": "https://down-tw.img.susercontent.com/tw-11134201-7r98o-lx9eymikjpd2cf"
   },
   {
@@ -3546,7 +3546,7 @@
   },
   {
     "name": "ATTACK EASY ANEKA SABUN DETERJEN CAIR 洗衣精 750ml",
-    "category": "Specification",
+    "category": "Home & Living > Home Care Supplies > Laundry Care > Detergents",
     "image": "https://down-tw.img.susercontent.com/tw-11134201-7r98v-lx9euyejwylsf2"
   },
   {
@@ -3646,7 +3646,7 @@
   },
   {
     "name": "ABC BUMBU KACANG SERBAGUNA調味醬-花生180g",
-    "category": "GTIN",
+    "category": "Food & Beverage > Cooking Essentials > Seasonings & Condiments > Sauce",
     "image": "https://down-tw.img.susercontent.com/tw-11134207-7r991-lzbho7v94a2ce1"
   },
   {
@@ -3716,7 +3716,7 @@
   },
   {
     "name": "SARIMI ISI 2 MIE KUAH RASA SOTO 速食爪哇雞湯麵 115g",
-    "category": "GTIN",
+    "category": "Food & Beverage > Convenience / Ready-to-eat > Instant Noodles",
     "image": "https://down-tw.img.susercontent.com/tw-11134201-7r98s-lx9et3ifrjmu82"
   },
   {
