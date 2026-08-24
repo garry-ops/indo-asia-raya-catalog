@@ -209,6 +209,118 @@
     background: var(--accent);
     color: #fff;
   }
+
+  .card.clickable { cursor: pointer; }
+
+  .variant-badge {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 12px;
+    background: var(--chip-bg);
+    color: var(--text);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 22, 20, 0.5);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+  }
+
+  .modal-backdrop.open { display: flex; }
+
+  .modal {
+    background: var(--card-bg);
+    border-radius: 14px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 2px 4px;
+  }
+
+  .modal-image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: var(--chip-bg);
+    display: block;
+  }
+
+  .modal-variants {
+    overflow-y: auto;
+    padding: 14px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .variant-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .variant-row-name {
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
+
+  .variant-order-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 14px;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .variant-order-btn:hover { background: var(--accent-hover); }
 </style>
 </head>
 <body>
@@ -236,8 +348,20 @@
   <div class="grid" id="productGrid"></div>
 </main>
 
+<div class="modal-backdrop" id="variantModalBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <button type="button" class="modal-close" id="modalCloseBtn" aria-label="Close">&times;</button>
+    </div>
+    <img class="modal-image" id="modalImage" alt="">
+    <div class="modal-variants" id="modalVariantList"></div>
+  </div>
+</div>
+
 <script>
   const WHATSAPP_NUMBER = "886983927584";
+  const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='400' height='400' fill='%23eef1ec'/%3E%3C/svg%3E";
 
   const I18N = {
     en: {
@@ -250,7 +374,11 @@
       orderBtn: "Order",
       emptyState: "No products match your search.",
       loadError: "Could not load products.json — make sure this page is served over HTTP (not opened as a file://) and the file exists alongside catalog.html.",
-      whatsappMessage: productName => `Hi, I'd like to order: ${productName}`,
+      whatsappMessage: (productName, variantName) => variantName
+        ? `Hi, I'd like to order: ${productName} - ${variantName}`
+        : `Hi, I'd like to order: ${productName}`,
+      variantsAvailable: n => `${n} variants — tap to view`,
+      chooseVariant: "Choose an option:",
     },
     id: {
       title: "Katalog Produk",
@@ -262,7 +390,11 @@
       orderBtn: "Pesan",
       emptyState: "Tidak ada produk yang cocok dengan pencarian Anda.",
       loadError: "Gagal memuat products.json — pastikan halaman ini dibuka lewat HTTP (bukan file://) dan file-nya ada di folder yang sama dengan catalog.html.",
-      whatsappMessage: productName => `Halo, saya mau pesan: ${productName}`,
+      whatsappMessage: (productName, variantName) => variantName
+        ? `Halo, saya mau pesan: ${productName} - ${variantName}`
+        : `Halo, saya mau pesan: ${productName}`,
+      variantsAvailable: n => `${n} varian tersedia — ketuk untuk lihat`,
+      chooseVariant: "Pilih varian:",
     },
   };
 
@@ -281,8 +413,8 @@
     return I18N[currentLang];
   }
 
-  function whatsappLink(productName) {
-    const text = encodeURIComponent(t().whatsappMessage(productName));
+  function whatsappLink(productName, variantName) {
+    const text = encodeURIComponent(t().whatsappMessage(productName, variantName));
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
   }
 
@@ -367,20 +499,21 @@
     }
 
     items.forEach(product => {
-      const card = document.createElement("div");
-      card.className = "card";
+      const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
 
-      const placeholderSrc = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='400' height='400' fill='%23eef1ec'/%3E%3C/svg%3E";
+      const card = document.createElement("div");
+      card.className = "card" + (hasVariants ? " clickable" : "");
+
       const img = document.createElement("img");
       img.className = "card-image";
       img.alt = product.name;
       img.loading = "lazy";
-      img.onerror = () => { img.style.objectFit = "contain"; img.src = placeholderSrc; };
+      img.onerror = () => { img.style.objectFit = "contain"; img.src = PLACEHOLDER_IMAGE; };
       if (product.image) {
         img.src = product.image;
       } else {
         img.style.objectFit = "contain";
-        img.src = placeholderSrc;
+        img.src = PLACEHOLDER_IMAGE;
       }
 
       const body = document.createElement("div");
@@ -394,21 +527,84 @@
       name.className = "card-name";
       name.textContent = product.name;
 
-      const orderBtn = document.createElement("a");
-      orderBtn.className = "order-btn";
-      orderBtn.href = whatsappLink(product.name);
-      orderBtn.target = "_blank";
-      orderBtn.rel = "noopener";
-      orderBtn.textContent = t().orderBtn;
-
       body.appendChild(category);
       body.appendChild(name);
-      body.appendChild(orderBtn);
+
+      if (hasVariants) {
+        const badge = document.createElement("div");
+        badge.className = "variant-badge";
+        badge.textContent = t().variantsAvailable(product.variants.length);
+        body.appendChild(badge);
+        card.addEventListener("click", () => openVariantModal(product));
+      } else {
+        const orderBtn = document.createElement("a");
+        orderBtn.className = "order-btn";
+        orderBtn.href = whatsappLink(product.name);
+        orderBtn.target = "_blank";
+        orderBtn.rel = "noopener";
+        orderBtn.textContent = t().orderBtn;
+        body.appendChild(orderBtn);
+      }
+
       card.appendChild(img);
       card.appendChild(body);
       grid.appendChild(card);
     });
   }
+
+  const modalBackdrop = document.getElementById("variantModalBackdrop");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalImage = document.getElementById("modalImage");
+  const modalVariantList = document.getElementById("modalVariantList");
+  const modalCloseBtn = document.getElementById("modalCloseBtn");
+
+  function openVariantModal(product) {
+    modalTitle.textContent = product.name;
+    modalImage.alt = product.name;
+    modalImage.onerror = () => { modalImage.style.objectFit = "contain"; modalImage.src = PLACEHOLDER_IMAGE; };
+    modalImage.src = product.image || PLACEHOLDER_IMAGE;
+    if (!product.image) modalImage.style.objectFit = "contain";
+
+    modalVariantList.innerHTML = "";
+    const hint = document.createElement("div");
+    hint.style.cssText = "font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;";
+    hint.textContent = t().chooseVariant;
+    modalVariantList.appendChild(hint);
+
+    product.variants.forEach(variantName => {
+      const row = document.createElement("div");
+      row.className = "variant-row";
+
+      const label = document.createElement("div");
+      label.className = "variant-row-name";
+      label.textContent = variantName;
+
+      const btn = document.createElement("a");
+      btn.className = "variant-order-btn";
+      btn.href = whatsappLink(product.name, variantName);
+      btn.target = "_blank";
+      btn.rel = "noopener";
+      btn.textContent = t().orderBtn;
+
+      row.appendChild(label);
+      row.appendChild(btn);
+      modalVariantList.appendChild(row);
+    });
+
+    modalBackdrop.classList.add("open");
+  }
+
+  function closeVariantModal() {
+    modalBackdrop.classList.remove("open");
+  }
+
+  modalCloseBtn.addEventListener("click", closeVariantModal);
+  modalBackdrop.addEventListener("click", e => {
+    if (e.target === modalBackdrop) closeVariantModal();
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeVariantModal();
+  });
 
   searchInput.addEventListener("input", renderGrid);
   sortSelect.addEventListener("change", renderGrid);
